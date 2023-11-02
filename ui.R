@@ -1,29 +1,36 @@
 library(shiny)
 library(ggplot2)
+library(readr)
+source("./preprocess.R")
 
-dataset <- diamonds
+IDB <- load_IDB()
+names_map <- attr(IDB, "names_map")[-c(1:4)]
 
 fluidPage(
   
-  titlePanel("Diamonds Explorer"),
+  titlePanel("DV 16"),
   
-  sidebarPanel(
+  sidebarLayout(position="right",
+    sidebarPanel(
+      selectInput('d1', 'D1', names_map),
+      selectInput('d2', 'D2', names_map, names_map[[2]]),
+      selectInput('name', "Country", c(unique(IDB$Name))),
+      sliderInput("year", "Year",
+                  min = 2010, max = 2023, value = c(2010, 2023)),
+      
+      # selectInput('color', 'Color', c('None', names(dataset))),
+      # 
+      # checkboxInput('jitter', 'Jitter'),
+      # checkboxInput('smooth', 'Smooth'),
+      # 
+      # selectInput('facet_row', 'Facet Row', c(None='.', names(dataset))),
+      # selectInput('facet_col', 'Facet Column', c(None='.', names(dataset)))
+    ),
     
-    sliderInput('sampleSize', 'Sample Size', min=1, max=nrow(dataset),
-                value=min(1000, nrow(dataset)), step=500, round=0),
-    
-    selectInput('x', 'X', names(dataset)),
-    selectInput('y', 'Y', names(dataset), names(dataset)[[2]]),
-    selectInput('color', 'Color', c('None', names(dataset))),
-    
-    checkboxInput('jitter', 'Jitter'),
-    checkboxInput('smooth', 'Smooth'),
-    
-    selectInput('facet_row', 'Facet Row', c(None='.', names(dataset))),
-    selectInput('facet_col', 'Facet Column', c(None='.', names(dataset)))
-  ),
-  
-  mainPanel(
-    plotOutput('plot')
+    mainPanel(
+      plotOutput('plot'),
+      tableOutput('table')
+    )
   )
+  
 )

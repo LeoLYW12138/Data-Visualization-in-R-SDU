@@ -1,30 +1,26 @@
 library(shiny)
 library(ggplot2)
+library(dplyr)
+
+source("./preprocess.R")
+IDB <- load_IDB()
+names_map <- attr(IDB, "names_map")
 
 function(input, output) {
   
   dataset <- reactive({
-    diamonds[sample(nrow(diamonds), input$sampleSize),]
+    IDB |>
+      select(Year, Name, input$d1, input$d2) |>
+      filter(Year >= input$year[1] & Year <= input$year[2] & Name == input$name)
   })
+  
   
   output$plot <- renderPlot({
     
-    p <- ggplot(dataset(), aes_string(x=input$x, y=input$y)) + geom_point()
-    
-    if (input$color != 'None')
-      p <- p + aes_string(color=input$color)
-    
-    facets <- paste(input$facet_row, '~', input$facet_col)
-    if (facets != '. ~ .')
-      p <- p + facet_grid(facets)
-    
-    if (input$jitter)
-      p <- p + geom_jitter()
-    if (input$smooth)
-      p <- p + geom_smooth()
+    p <- ggplot(dataset()) + geom_point(aes(x=Year, y=input$d1)) + geom_point(aes(x=Year, y=input$d2))
     
     print(p)
-    
-  }, height=700)
+  })
   
+  output$table <- renderTable(dataset())
 }
