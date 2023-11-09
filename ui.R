@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(readr)
+library(leaflet.extras)
 source("./preprocess.R")
 
 IDB <- load_IDB()
@@ -32,7 +33,7 @@ fluidPage(
     ),
     tabPanel(
       "Tab 2", fluid = T,
-      h1("Hello World")
+      leafletOutput(outputId = "map"), 
     )
   )
 )

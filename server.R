@@ -1,6 +1,7 @@
 library(shiny)
 library(ggplot2)
 library(dplyr)
+library(leaflet.extras)
 
 source("./preprocess.R")
 IDB <- load_IDB()
@@ -42,4 +43,12 @@ function(input, output) {
   })
   
   output$table <- renderTable(dataset())
+  
+  output$map <- renderLeaflet({
+    leaflet() |>
+      addProviderTiles(providers$Stadia.StamenTonerLite, options = providerTileOptions(noWrap = TRUE)) |>
+      setView(0, 10, 1.5) |> 
+      addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+    
+  })
 }
