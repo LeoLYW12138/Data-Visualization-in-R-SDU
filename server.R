@@ -18,7 +18,7 @@ function(input, output) {
     max(dataset()[[input$d1]], na.rm = TRUE) / max(dataset()[[input$d2]], na.rm = TRUE)
   })
   
-  output$plot <- renderPlot({
+  output$tab1_plot <- renderPlot({
     
     d1 <- input$d1
     d2 <- input$d2
