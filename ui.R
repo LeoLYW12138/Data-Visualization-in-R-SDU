@@ -4,7 +4,7 @@ library(readr)
 source("./preprocess.R")
 
 IDB <- load_IDB()
-names_map <- attr(IDB, "names_map")[-c(1:4)]
+names_map <- attr(IDB, "name2colname_map")[-c(1:4)]
 
 fluidPage(
   
