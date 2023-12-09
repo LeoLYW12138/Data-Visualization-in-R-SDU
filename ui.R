@@ -33,7 +33,25 @@ fluidPage(
     ),
     tabPanel(
       "Tab 2", fluid = T,
-      leafletOutput(outputId = "map"), 
+      #plotOutput(outputId = "map"),
+      sidebarLayout(position = "right",
+                    sidebarPanel(
+                      selectInput('d4', 'D4', names_map, names_map[[2]]),
+                      sliderInput(
+                        "mapYear",
+                        "MapYear:",
+                        min = 2010,
+                        max = 2023,
+                        value = 2010,
+                        step = 1,
+                        sep = ",",
+                        animate = TRUE
+                      ),
+                    ),
+                    mainPanel(
+                      plotOutput(outputId = "map")
+                    )
+      )
     )
   )
 )

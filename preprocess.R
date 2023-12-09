@@ -27,3 +27,19 @@ load_IDB <- function () {
   return (IDB)
   # return( c(IDB, names_map) )
 }
+
+
+load_WorldMap <- function (){
+  world_data <- map_data("world")
+  
+  world_data <- world_data %>% mutate(region = str_replace(region, "USA", "United States"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "UK", "United Kingdom"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "Democratic Republic of the Congo", "Congo (Brazzaville)"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "Republic of Congo", "Congo (Kinshasa)"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "South Korea", "Korea, South"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "North Korea", "Korea, North"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "Myanmar", "Burma"))
+  world_data <- world_data %>% mutate(region = str_replace(region, "Ivory Coast", "Côte d'Ivoire"))
+  
+  return(world_data)
+}

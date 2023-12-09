@@ -1,10 +1,13 @@
 library(shiny)
 library(ggplot2)
 library(dplyr)
-library(leaflet.extras)
+library(tidyverse)
+library(maps)
+library(RColorBrewer)
 
 source("./preprocess.R")
 IDB <- load_IDB()
+DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
 
 function(input, output) {
@@ -44,11 +47,80 @@ function(input, output) {
   
   output$table <- renderTable(dataset())
   
-  output$map <- renderLeaflet({
-    leaflet() |>
-      addProviderTiles(providers$Stadia.StamenTonerLite, options = providerTileOptions(noWrap = TRUE)) |>
-      setView(0, 10, 1.5) |> 
-      addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+  
+  
+  
+  ###< MAP ###
+  worldMapIDB <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYear)
+    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
+  
+  })
+  
+  worldMapIntervals <- reactive({
+    minimumPop = min(IDB[input$d4])
+    maximumPop = max(IDB[input$d4])
+    
+    lowestNumber = floor(log10(minimumPop))
+    higestNumber = floor(log10(maximumPop))
+    
+    lowBreak = 10 ^ lowestNumber
+    highBreak = 10 ^ higestNumber
+    
+    step1 = lowBreak * 10 - 1 
+    step2 = step1 * 10 - 1
+    step3 = step2 * 10 - 1
+    step4 = step3 * 10 - 1
+    
+    
+    #print(IDB["Population"])
+    x = IDB[["Population"]]
+    
+    #ct = cut(unique(x), breaks = 6)
+    
+    #print(ct)
+    
+    #color_intervals <- c(lowBreak,step1, step2, step3, step4, highBreak)
+    #color_intervals <- c(lowBreak,999999, 1000000, 9999999 , 10000000, 99999999, 100000000, 249999999, 250000000, highBreak)
     
   })
+  
+  worldMapDataset <- reactive({
+    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
+  })
+  
+  
+  ### MAP ###
+  output$map <- renderPlot({
+    
+    d4 <- input$d4
+
+    mapTitle  = paste("World Map for", d4)
+    
+    color_intervals <- c(0,999999, 1000000, 9999999, 10000000, 99999999, 100000000, 249999999, 250000000, 2000000000)
+    
+    color_palette <- brewer.pal(length(color_intervals), "YlOrRd")
+    
+    cnames <- aggregate(cbind(long, lat) ~ region , data=worldMapDataset(), FUN=function(x)mean(range(x)))
+    
+    world_map <- ggplot(worldMapDataset()) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals)), color = "gray40") +
+      expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
+      #geom_text(data = cnames, aes(label = region, x = long, y = lat), size=1) +
+      coord_fixed() +
+      scale_fill_manual(values = color_palette) +
+      labs(title = mapTitle, fill = d4) +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
+    
+  })
+  ### MAP >###
+  
 }
