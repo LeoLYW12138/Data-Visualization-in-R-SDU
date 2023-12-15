@@ -4,6 +4,8 @@ library(dplyr)
 library(tidyverse)
 library(maps)
 library(RColorBrewer)
+library(moments)
+library(scales)
 
 source("./preprocess.R")
 IDB <- load_IDB()
@@ -48,40 +50,58 @@ function(input, output) {
   output$table <- renderTable(dataset())
   
   
-  
-  
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)
     country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
-  
   })
   
   worldMapIntervals <- reactive({
-    minimumPop = min(IDB[input$d4])
-    maximumPop = max(IDB[input$d4])
+
+    d4 <- input$d4
     
-    lowestNumber = floor(log10(minimumPop))
-    higestNumber = floor(log10(maximumPop))
+    d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
     
-    lowBreak = 10 ^ lowestNumber
-    highBreak = 10 ^ higestNumber
+    if(d4 == "Population.Density."){
+      d4 <- "Population.Density..People.per.Sq..Km.."
+    }
     
-    step1 = lowBreak * 10 - 1 
-    step2 = step1 * 10 - 1
-    step3 = step2 * 10 - 1
-    step4 = step3 * 10 - 1
+    if(d4 == "Annual.Growth.Rate.%"){
+      d4 <- "Annual.Growth.Rate.."
+    }
     
+    filteredInput <- worldMapIDB()[d4][!is.na(worldMapIDB()[d4])]
     
-    #print(IDB["Population"])
-    x = IDB[["Population"]]
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
     
-    #ct = cut(unique(x), breaks = 6)
+    print(minimumPop)
+    print(maximumPop)
     
-    #print(ct)
+    lowestNumber = 0
     
-    #color_intervals <- c(lowBreak,step1, step2, step3, step4, highBreak)
-    #color_intervals <- c(lowBreak,999999, 1000000, 9999999 , 10000000, 99999999, 100000000, 249999999, 250000000, highBreak)
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    breakNumber = 7
+    
+    if (maximumPop > 1000){
+      breakNumber = 12
+    }else if (maximumPop < 10){
+      breakNumber = 5
+    }else{
+      breakNumber = 7
+    }
+    
+    if (d4 == "Population.Density..People.per.Sq..Km.."){
+      breakNumber = 7
+      maximumPop = 600
+    }
+    
+    intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
     
   })
   
@@ -94,22 +114,49 @@ function(input, output) {
   output$map <- renderPlot({
     
     d4 <- input$d4
+    
+    d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
+    
+    if(d4 == "Population.Density."){
+      d4 <- "Population.Density..People.per.Sq..Km.."
+    }
+    
+    if(d4 == "Annual.Growth.Rate.%"){
+      d4 <- "Annual.Growth.Rate.."
+    }
+    
+    
+    color_intervals2 <- worldMapIntervals()
+    
+    colorLabels = head(color_intervals2$labels, -1)
+   
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
 
-    mapTitle  = paste("World Map for", d4)
+    }
     
-    color_intervals <- c(0,999999, 1000000, 9999999, 10000000, 99999999, 100000000, 249999999, 250000000, 2000000000)
+    title <- gsub("\\.(?=[^.]*\\.)", " ", d4, perl=TRUE)
+    mapTitle  = paste("World Map for", title)
     
-    color_palette <- brewer.pal(length(color_intervals), "YlOrRd")
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
     
-    cnames <- aggregate(cbind(long, lat) ~ region , data=worldMapDataset(), FUN=function(x)mean(range(x)))
+    #Need to filter out names not fit
+    cnames <- aggregate(cbind(long, lat) ~ region , data=worldMapDataset(), FUN=function(x)median(range(x)))
     
     world_map <- ggplot(worldMapDataset()) +
-      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals)), color = "gray40") +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
-      #geom_text(data = cnames, aes(label = region, x = long, y = lat), size=1) +
+      #geom_text(data = cnames, aes(label = region, x = long, y = lat), size=2) +
       coord_fixed() +
       scale_fill_manual(values = color_palette) +
-      labs(title = mapTitle, fill = d4) +
+      labs(title = mapTitle, fill = title) +
       theme_minimal() +
       theme(legend.position = "bottom") +
       theme(legend.position = "bottom",
