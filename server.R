@@ -1,7 +1,15 @@
+if(!requireNamespace("shiny",quietly=TRUE))install.packages("shiny")
+if(!requireNamespace("dplyr",quietly=TRUE))install.packages("dplyr")
+if(!requireNamespace("ggplot2",quietly=TRUE))install.packages("ggplot2")
+if(!requireNamespace("maps", quietly=TRUE))install.packages("maps")
+if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
+
+
 library(shiny)
-library(ggplot2)
 library(dplyr)
-library(leaflet.extras)
+library(ggplot2)
+library(maps)
+library(RColorBrewer)
 
 source("./preprocess.R")
 IDB <- load_IDB()
@@ -44,11 +52,30 @@ function(input, output) {
   
   output$table <- renderTable(dataset())
   
-  output$map <- renderLeaflet({
-    leaflet() |>
-      addProviderTiles(providers$Stadia.StamenTonerLite, options = providerTileOptions(noWrap = TRUE)) |>
-      setView(0, 10, 1.5) |> 
-      addMarkers(lng=174.768, lat=-36.852, popup="The birthplace of R")
+  output$example_map <- renderPlot({
     
+    country_data <- data.frame(
+      country = c("USA", "Canada", "Brazil", "United Kingdom", "China", "India", "Australia"),
+      occurrences = c(20, 15, 30, 10, 25, 15, 20)
+    )
+    world_data <- map_data("world")
+    merged_data <- left_join(world_data, country_data, by = c("region" = "country"))
+    
+    color_intervals <- c(0, 10, 15, 20, 25, 30)
+    color_palette <- brewer.pal(length(color_intervals) - 1, "Greens")
+    
+    world_map <- ggplot(merged_data) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals)), color = "gray40") +
+      scale_fill_manual(values = color_palette) +
+      labs(title = "World Map for Occurrences", fill = "Occurrences") +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
   })
 }

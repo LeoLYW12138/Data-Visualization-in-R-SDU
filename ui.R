@@ -33,7 +33,7 @@ fluidPage(
     ),
     tabPanel(
       "Tab 2", fluid = T,
-      leafletOutput(outputId = "map"), 
+      plotOutput("example_map")
     )
   )
 )
