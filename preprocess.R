@@ -32,6 +32,7 @@ load_IDB <- function () {
 load_WorldMap <- function (){
   world_data <- map_data("world")
   
+  #Make the world map data regions match the data from IDB for country names
   world_data <- world_data %>% mutate(region = str_replace(region, "USA", "United States"))
   world_data <- world_data %>% mutate(region = str_replace(region, "UK", "United Kingdom"))
   world_data <- world_data %>% mutate(region = str_replace(region, "Democratic Republic of the Congo", "Congo (Brazzaville)"))

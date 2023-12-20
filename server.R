@@ -155,7 +155,6 @@ function(input, output) {
     
     color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
     
-     
     filteredWorldMap <- worldMapDataset() %>% select(long,lat, region)
     
     #First summarize the region's mean to get the location of the country names to be put on the map
