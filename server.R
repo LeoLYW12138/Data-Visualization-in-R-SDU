@@ -1,18 +1,22 @@
 if(!requireNamespace("shiny",quietly=TRUE))install.packages("shiny")
 if(!requireNamespace("dplyr",quietly=TRUE))install.packages("dplyr")
 if(!requireNamespace("ggplot2",quietly=TRUE))install.packages("ggplot2")
-if(!requireNamespace("maps", quietly=TRUE))install.packages("maps")
 if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
-
+if(!requireNamespace("moments", quietly=TRUE))install.packages("moments")
+if(!requireNamespace("scales", quietly=TRUE))install.packages("scales")
 
 library(shiny)
 library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(maps)
 library(RColorBrewer)
+library(moments)
+library(scales)
 
 source("./preprocess.R")
+source("./gender_imbalance_plot.R")
 IDB <- load_IDB()
+DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
 
 function(input, output) {
@@ -52,22 +56,114 @@ function(input, output) {
   
   output$table <- renderTable(dataset())
   
-  output$example_map <- renderPlot({
+  output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
+  
+  ###< MAP ###
+  worldMapIDB <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYear)
+    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
+  })
+  
+  worldMapIntervals <- reactive({
+    d4 <- input$d4
     
-    country_data <- data.frame(
-      country = c("USA", "Canada", "Brazil", "United Kingdom", "China", "India", "Australia"),
-      occurrences = c(20, 15, 30, 10, 25, 15, 20)
-    )
-    world_data <- map_data("world")
-    merged_data <- left_join(world_data, country_data, by = c("region" = "country"))
+    d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
     
-    color_intervals <- c(0, 10, 15, 20, 25, 30)
-    color_palette <- brewer.pal(length(color_intervals) - 1, "Greens")
+    if(d4 == "Population.Density."){
+      d4 <- "Population.Density..People.per.Sq..Km.."
+    }
     
-    world_map <- ggplot(merged_data) +
-      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals)), color = "gray40") +
+    if(d4 == "Annual.Growth.Rate.%"){
+      d4 <- "Annual.Growth.Rate.."
+    }
+    
+    filteredInput <- worldMapIDB()[d4][!is.na(worldMapIDB()[d4])]
+    
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
+    
+    print(minimumPop)
+    print(maximumPop)
+    
+    lowestNumber = 0
+    
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    breakNumber = 7
+    
+    if (maximumPop > 1000){
+      breakNumber = 12
+    }else if (maximumPop < 10){
+      breakNumber = 5
+    }else{
+      breakNumber = 7
+    }
+    
+    if (d4 == "Population.Density..People.per.Sq..Km.."){
+      breakNumber = 7
+      maximumPop = 600
+    }
+    
+    intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
+    
+  })
+  
+  worldMapDataset <- reactive({
+    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
+  })
+  
+  
+  ### MAP ###
+  output$map <- renderPlot({
+    
+    d4 <- input$d4
+    
+    d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
+    
+    if(d4 == "Population.Density."){
+      d4 <- "Population.Density..People.per.Sq..Km.."
+    }
+    
+    if(d4 == "Annual.Growth.Rate.%"){
+      d4 <- "Annual.Growth.Rate.."
+    }
+    
+    
+    color_intervals2 <- worldMapIntervals()
+    
+    colorLabels = head(color_intervals2$labels, -1)
+   
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
+
+    }
+    
+    title <- gsub("\\.(?=[^.]*\\.)", " ", d4, perl=TRUE)
+    mapTitle  = paste("World Map for", title)
+    
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
+    
+    #Need to filter out names not fit
+    cnames <- aggregate(cbind(long, lat) ~ region , data=worldMapDataset(), FUN=function(x)median(range(x)))
+    
+    world_map <- ggplot(worldMapDataset()) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
+      #geom_text(data = cnames, aes(label = region, x = long, y = lat), size=2) +
+      coord_fixed() +
       scale_fill_manual(values = color_palette) +
-      labs(title = "World Map for Occurrences", fill = "Occurrences") +
+      labs(title = mapTitle, fill = title) +
       theme_minimal() +
       theme(legend.position = "bottom") +
       theme(legend.position = "bottom",
@@ -77,5 +173,8 @@ function(input, output) {
             panel.grid.minor = element_blank())
     
     print(world_map)
+    
   })
+  ### MAP >###
+  
 }

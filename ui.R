@@ -1,7 +1,6 @@
 library(shiny)
 library(ggplot2)
 library(readr)
-library(leaflet.extras)
 source("./preprocess.R")
 
 IDB <- load_IDB()
@@ -33,7 +32,48 @@ fluidPage(
     ),
     tabPanel(
       "Tab 2", fluid = T,
-      plotOutput("example_map")
+      sidebarLayout(position = "right",
+        sidebarPanel(
+          selectInput('d4', 'D4', names_map, names_map[[2]]),
+          sliderInput(
+            "mapYear",
+            "MapYear:",
+            min = 2010,
+            max = 2023,
+            value = 2010,
+            step = 1,
+            sep = ",",
+            animate = TRUE
+          ),
+        ),
+        mainPanel(
+          plotOutput(outputId = "map")
+        )
+      )
+    ),
+    tabPanel(
+      "Gender Imbalance", fluid = T,
+      sidebarLayout(position = "right",
+        sidebarPanel(
+          sliderInput(
+            "year1",
+            label = "Year:",
+            min = MIN_YEAR,
+            max = MAX_YEAR,
+            value = MIN_YEAR,
+            step = 1,
+            animate = TRUE
+          ),
+          sliderInput("format", "Custom Format:",
+                      min = 0, max = 10000,
+                      value = 0, step = 2500,
+                      pre = "$", sep = ",",
+                      animate = TRUE),
+        ),
+        mainPanel(
+          plotOutput(outputId = "gender_imbalance")
+        )
+      )
     )
   )
 )

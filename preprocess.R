@@ -1,5 +1,10 @@
+if(!requireNamespace("maps", quietly=TRUE))install.packages("maps")
 library(readr)
 library(tidyverse)
+library(maps)
+
+MIN_YEAR=2010
+MAX_YEAR=2023
 
 #' Load the IDB dataset from csv to an n-d array with dimensions: year, country, indicators
 load_IDB <- function () {
@@ -26,4 +31,19 @@ load_IDB <- function () {
   attr(IDB, "colname2name_map") <- colname2name_map
   return (IDB)
   # return( c(IDB, names_map) )
+}
+
+
+load_WorldMap <- function (){
+  world_data <- map_data("world") |>
+    mutate(region = str_replace_all(region, c("USA" = "United States",
+                                              "UK" = "United Kingdom",
+                                              "Democratic Republic of the Congo" = "Congo (Brazzaville)",
+                                              "Republic of Congo" = "Congo (Kinshasa)",
+                                              "South Korea" = "Korea, South",
+                                              "North Korea" = "Korea, North",
+                                              "Myanmar" = "Burma",
+                                              "Ivory Coast" = "Côte d'Ivoire")))
+  
+  return(world_data)
 }
