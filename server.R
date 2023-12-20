@@ -56,6 +56,10 @@ function(input, output) {
     country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
   })
   
+  worldMapDataset <- reactive({
+    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
+  })
+  
   worldMapIntervals <- reactive({
 
     d4 <- input$d4
@@ -91,22 +95,24 @@ function(input, output) {
     if (maximumPop > 1000){
       breakNumber = 12
     }else if (maximumPop < 10){
-      breakNumber = 5
+      breakNumber = 4
     }else{
-      breakNumber = 7
+      breakNumber = 6
     }
+    
     
     if (d4 == "Population.Density..People.per.Sq..Km.."){
       breakNumber = 7
       maximumPop = 600
     }
     
+    if (d4 == "Net.international.migrants.both.sexes"){
+      breakNumber = 4
+      maximumPop = 1000
+    }
+    
     intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
     
-  })
-  
-  worldMapDataset <- reactive({
-    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
   })
   
   
@@ -115,6 +121,7 @@ function(input, output) {
     
     d4 <- input$d4
     
+    #Cleaning input due to change of column names when joining
     d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
     
     if(d4 == "Population.Density."){
@@ -126,10 +133,10 @@ function(input, output) {
     }
     
     
+    #Loading the proper intervals for the data and creating labels for them
     color_intervals2 <- worldMapIntervals()
     
     colorLabels = head(color_intervals2$labels, -1)
-   
     colorLabels[1] = paste("Up to", colorLabels[2])
     
     for (i in 2:length(colorLabels)){
@@ -142,18 +149,25 @@ function(input, output) {
 
     }
     
+    #Clean input for title and map title
     title <- gsub("\\.(?=[^.]*\\.)", " ", d4, perl=TRUE)
     mapTitle  = paste("World Map for", title)
     
     color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
     
-    #Need to filter out names not fit
-    cnames <- aggregate(cbind(long, lat) ~ region , data=worldMapDataset(), FUN=function(x)median(range(x)))
+     
+    filteredWorldMap <- worldMapDataset() %>% select(long,lat, region)
+    
+    #First summarize the region's mean to get the location of the country names to be put on the map
+    cnames  <- filteredWorldMap %>% group_by(region) %>% summarise_all(mean)
+    filterList <- c("China", "Russia", "Brazil", "Australia", "India")
+    cnames <- filter(cnames, region %in% filterList)
     
     world_map <- ggplot(worldMapDataset()) +
       geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
-      #geom_text(data = cnames, aes(label = region, x = long, y = lat), size=2) +
+      geom_text(data = cnames,
+                aes(label = region, x = long, y = lat), size = 3, fontface = 2, color = "gray20") +
       coord_fixed() +
       scale_fill_manual(values = color_palette) +
       labs(title = mapTitle, fill = title) +
