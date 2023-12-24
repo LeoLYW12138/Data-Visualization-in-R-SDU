@@ -1,5 +1,11 @@
+if(!requireNamespace("shiny",quietly=TRUE))install.packages("shiny")
+if(!requireNamespace("dplyr",quietly=TRUE))install.packages("dplyr")
+if(!requireNamespace("ggplot2",quietly=TRUE))install.packages("ggplot2")
+if(!requireNamespace("maps", quietly=TRUE))install.packages("maps")
+if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
+
+
 library(shiny)
-library(ggplot2)
 library(dplyr)
 library(tidyverse)
 library(maps)
@@ -113,6 +119,7 @@ function(input, output) {
     
     intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
     
+    print(world_map)
   })
   
   
