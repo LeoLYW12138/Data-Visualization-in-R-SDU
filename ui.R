@@ -64,15 +64,33 @@ fluidPage(
             step = 1,
             animate = TRUE
           ),
-          sliderInput("format", "Custom Format:",
-                      min = 0, max = 10000,
-                      value = 0, step = 2500,
-                      pre = "$", sep = ",",
-                      animate = TRUE),
         ),
         mainPanel(
           plotOutput(outputId = "gender_imbalance")
         )
+      )
+    ),
+    tabPanel(
+      "Living cost vs Migration rate", fluid = T,
+      sidebarLayout(position = "left",
+                    sidebarPanel(
+                      selectInput("mode",
+                                  label="Mode",
+                                  c("By Year", "By Country")),
+                      sliderInput(
+                        "year_migration_plot",
+                        label = "Year:",
+                        min = MIN_YEAR,
+                        max = MAX_YEAR,
+                        value = MIN_YEAR,
+                        step = 1,
+                        animate = TRUE
+                      ),
+                      selectInput('name_migration_plot', "Country", c(unique(IDB$Name))),
+                    ),
+                    mainPanel(
+                      plotOutput(outputId = "living_cost_migration")
+                    )
       )
     )
   )

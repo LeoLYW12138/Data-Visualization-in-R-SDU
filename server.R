@@ -15,6 +15,7 @@ library(scales)
 
 source("./preprocess.R")
 source("./gender_imbalance_plot.R")
+source("./living_cost_migration_plot.R")
 IDB <- load_IDB()
 DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
@@ -58,10 +59,12 @@ function(input, output) {
   
   output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
+  output$living_cost_migration <- living_cost_migration_plot(input, IDB)
+  
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)
-    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
+    country_data  <- data.frame(country = filteredYears["Country"], occurrences = filteredYears[input$d4])
   })
   
   worldMapIntervals <- reactive({
@@ -113,7 +116,7 @@ function(input, output) {
   })
   
   worldMapDataset <- reactive({
-    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
+    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Country"))
   })
   
   
