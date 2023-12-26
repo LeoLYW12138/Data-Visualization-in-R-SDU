@@ -43,7 +43,7 @@ fluidPage(
                         max = 2023,
                         value = 2010,
                         step = 1,
-                        sep = ",",
+                        sep = "",
                         animate = TRUE
                       ),
                     ),
@@ -58,12 +58,12 @@ fluidPage(
                     sidebarPanel(
                       sliderInput(
                         "mapYearFertility",
-                        "Map Year",
+                        "Map Year:",
                         min = 2010,
                         max = 2023,
                         value = 2010,
                         step = 1,
-                        sep = ",",
+                        sep = "",
                         animate = TRUE
                       ),
                     ),
@@ -78,12 +78,12 @@ fluidPage(
                     sidebarPanel(
                       sliderInput(
                         "mapYearInfant",
-                        "Map Year",
+                        "Map Year:",
                         min = 2010,
                         max = 2023,
                         value = 2010,
                         step = 1,
-                        sep = ",",
+                        sep = "",
                         animate = TRUE
                       ),
                     ),

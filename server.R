@@ -165,9 +165,6 @@ function(input, output) {
     filterList <- c("China", "Russia", "Brazil", "Australia", "India")
     cnames <- filter(cnames, region %in% filterList)
     
-    print(color_intervals2$breaks)
-    print(title)
-    
     world_map <- ggplot(worldMapDataset()) +
       geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
@@ -282,9 +279,6 @@ function(input, output) {
     mergedData <- left_join(DB_MAP, filteredYearInfant(), by = c("region" = "Name"))
     
     color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
-    
-    print(color_intervals2)
-    print(mergedData)
     
     world_map <- ggplot(mergedData) +
       geom_polygon(aes(x = long, y = lat, group = group, fill = cut(Infant.Mortality.Rate.Both.Sexes, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
