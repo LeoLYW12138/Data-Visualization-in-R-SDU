@@ -209,17 +209,7 @@ function(input, output) {
       lowestNumber = 0
     }
     
-    breakNumber = 7
-    
-    if (maximumPop > 1000){
-      breakNumber = 12
-    }else if (maximumPop < 10){
-      breakNumber = 4
-    }else{
-      breakNumber = 6
-    }
-    
-    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
+    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(4), labels = comma_format())
     
     colorLabels = head(color_intervals2$labels, -1)
     colorLabels[1] = paste("Up to", colorLabels[2])
@@ -274,16 +264,6 @@ function(input, output) {
       lowestNumber = minimumPop
     }else {
       lowestNumber = 0
-    }
-    
-    breakNumber = 7
-    
-    if (maximumPop > 1000){
-      breakNumber = 12
-    }else if (maximumPop < 10){
-      breakNumber = 4
-    }else{
-      breakNumber = 6
     }
     
     color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(5), labels = comma_format())
