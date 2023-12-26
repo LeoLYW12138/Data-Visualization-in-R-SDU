@@ -13,9 +13,9 @@ fluidPage(
       "Tab 1", fluid = T,
       sidebarLayout(position = "right",
         sidebarPanel(
-          selectInput('d1', 'D1', names_map),
-          selectInput('d2', 'D2', names_map, names_map[[2]]),
-          selectInput('name', "Country", c(unique(IDB$Name))),
+          selectInput('d1', 'D1', names_map[-(1:4)]),
+          selectInput('d2', 'D2', names_map[-(1:4)], names_map[[6]]),
+          selectInput('name', "Country", c(unique(IDB$Country))),
           sliderInput(
             "year",
             "Year",
@@ -34,7 +34,7 @@ fluidPage(
       "Tab 2", fluid = T,
       sidebarLayout(position = "right",
         sidebarPanel(
-          selectInput('d4', 'D4', names_map, names_map[[2]]),
+          selectInput('d4', 'D4', names_map[-(1:4)], names_map[[6]]),
           sliderInput(
             "mapYear",
             "MapYear:",
@@ -86,11 +86,12 @@ fluidPage(
                         step = 1,
                         animate = TRUE
                       ),
-                      selectInput('name_migration_plot', "Country", c(unique(IDB$Name))),
+                      selectInput('country_migration_plot', "Country", c(unique(IDB$Country))),
                     ),
                     mainPanel(
-                      plotOutput(outputId = "living_cost_migration")
-                    )
+                      imageOutput(outputId = "living_cost_migration"),
+                    tableOutput("debug")
+                    ),
       )
     )
   )

@@ -23,14 +23,12 @@ load_IDB <- function () {
   # remove useless rows e.g. --> 2010
   IDB <- IDB |> filter(!startsWith(Country, "->"))
   # convert all "XXX,XXX.XX" formatted values to number
-  character_cols = c("", "Country", "GENC", "Year", "Continent", "Income")
-  IDB[, -character_cols] <- IDB[, -character_cols] |> lapply(function(x) parse_guess(x, na=c("", "--", "NA"), guess_integer = TRUE))
+  # IDB[, -(1:7)] <- IDB[, -(1:7)] |> lapply(function(x) ifelse(is.character, parse_guess(x, na=c("", "--", "NA"), guess_integer = TRUE), x))
   IDB <- IDB |> mutate_at(c("Year"), as.integer)
   # TODO group by year and country
   
   attr(IDB, "name2colname_map") <- name2colname_map
   attr(IDB, "colname2name_map") <- colname2name_map
-  view(IDB)
   return (IDB)
   # return( c(IDB, names_map) )
 }

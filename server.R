@@ -1,6 +1,8 @@
 if(!requireNamespace("shiny",quietly=TRUE))install.packages("shiny")
 if(!requireNamespace("dplyr",quietly=TRUE))install.packages("dplyr")
 if(!requireNamespace("ggplot2",quietly=TRUE))install.packages("ggplot2")
+if(!requireNamespace("gganimate",quietly=TRUE))install.packages("gganimate")
+if(!requireNamespace("gifski",quietly=TRUE))install.packages("gifski")
 if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
 if(!requireNamespace("moments", quietly=TRUE))install.packages("moments")
 if(!requireNamespace("scales", quietly=TRUE))install.packages("scales")
@@ -8,10 +10,11 @@ if(!requireNamespace("scales", quietly=TRUE))install.packages("scales")
 library(shiny)
 library(dplyr)
 library(tidyverse)
-library(maps)
 library(RColorBrewer)
 library(moments)
 library(scales)
+library(ggplot2)
+library(gganimate)
 
 source("./preprocess.R")
 source("./gender_imbalance_plot.R")
@@ -24,12 +27,12 @@ function(input, output) {
   
   dataset <- reactive({
     IDB |>
-      select(Year, Name, input$d1, input$d2) |>
-      filter(Year >= input$year[1] & Year <= input$year[2] & Name == input$name)
+      select(Year, Country, input$d1, input$d2) |>
+      filter(Year >= input$year[1] & Year <= input$year[2] & Country == input$name)
   })
   
   scaleFactor <- reactive({
-    max(dataset()[[input$d1]], na.rm = TRUE) / max(dataset()[[input$d2]], na.rm = TRUE)
+    m <- max(dataset()[[input$d1]], na.rm = TRUE) / max(dataset()[[input$d2]], na.rm = TRUE)
   })
   
   output$tab1_plot <- renderPlot({
@@ -59,7 +62,7 @@ function(input, output) {
   
   output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
-  output$living_cost_migration <- living_cost_migration_plot(input, IDB)
+  output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
   
   ###< MAP ###
   worldMapIDB <- reactive({

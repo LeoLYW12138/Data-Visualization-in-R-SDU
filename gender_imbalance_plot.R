@@ -4,6 +4,7 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
     male_population <- IDB_by_year[["Male.Population"]]
     female_population <- IDB_by_year[["Female.Population"]]
     gender_ratio <- male_population / female_population * 100
+    print(gender_ratio)
     
     country_data  <- data.frame(country = IDB_by_year[["Country"]], gender_ratio)
   })
