@@ -44,6 +44,6 @@ load_WorldMap <- function (){
                                               "North Korea" = "Korea, North",
                                               "Myanmar" = "Burma",
                                               "Ivory Coast" = "Côte d'Ivoire")))
-  
+
   return(world_data)
 }

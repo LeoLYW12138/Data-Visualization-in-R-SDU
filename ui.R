@@ -90,7 +90,6 @@ fluidPage(
                     ),
                     mainPanel(
                       imageOutput(outputId = "living_cost_migration"),
-                    tableOutput("debug")
                     ),
       )
     )

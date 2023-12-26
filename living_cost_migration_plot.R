@@ -5,17 +5,14 @@ living_cost_migration_plot <- function(input, IDB, output) {
   # 2. all year by country
   # do a time series plot by country first
   dataset <- reactive({
-    IDB |> select(Year, Country, "Net.Migration.Rate") |>
+    IDB |> select(Year, Country, Income, "Net.Migration.Rate") |>
       filter(Country == input$country_migration_plot)
   })
-  
-  output$debug <- renderTable(dataset())
-  
   
   return(renderImage({
     outfile <- tempfile(fileext='.gif')
   
-    p <- ggplot(dataset(), aes(x = Year, group=1)) + 
+    p <- ggplot(dataset(), aes(x = Year, group=1, color=Income)) + 
       geom_point(aes(y = .data[["Net.Migration.Rate"]])) +
       geom_line(aes(y = .data[["Net.Migration.Rate"]])) +
       geom_text(aes(y = .data[["Net.Migration.Rate"]], label=.data[["Net.Migration.Rate"]]),vjust=-0.25) +
