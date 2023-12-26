@@ -85,9 +85,6 @@ function(input, output) {
     minimumPop = min(filteredInput)
     maximumPop = max(filteredInput)
     
-    print(minimumPop)
-    print(maximumPop)
-    
     lowestNumber = 0
     
     if (minimumPop < lowestNumber){
@@ -119,11 +116,10 @@ function(input, output) {
     
     intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
     
-    print(world_map)
   })
   
   
-  ### MAP ###
+  ### OVERALL MAP --->###
   output$map <- renderPlot({
     
     d4 <- input$d4
@@ -169,6 +165,9 @@ function(input, output) {
     filterList <- c("China", "Russia", "Brazil", "Australia", "India")
     cnames <- filter(cnames, region %in% filterList)
     
+    print(color_intervals2$breaks)
+    print(title)
+    
     world_map <- ggplot(worldMapDataset()) +
       geom_polygon(aes(x = long, y = lat, group = group, fill = cut(.data[[d4]], breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       expand_limits(x = worldMapDataset()$long, y = worldMapDataset()$lat) +
@@ -186,8 +185,142 @@ function(input, output) {
             panel.grid.minor = element_blank())
     
     print(world_map)
-    
   })
-  ### MAP >###
+  ###<--- OVERALL MAP###
+  
+  filteredYearFertiltiy <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYearFertility)
+    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears["Total.Fertility.Rate"])
+  })
+  
+  ### FERTILITY MAP --->###
+  output$fertility_map <- renderPlot({
+    
+    filteredInput <- filteredYearFertiltiy()$Total.Fertility.Rate[!is.na(filteredYearFertiltiy()$Total.Fertility.Rate)]
+    
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
+    
+    lowestNumber = 0
+    
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    breakNumber = 7
+    
+    if (maximumPop > 1000){
+      breakNumber = 12
+    }else if (maximumPop < 10){
+      breakNumber = 4
+    }else{
+      breakNumber = 6
+    }
+    
+    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
+    
+    colorLabels = head(color_intervals2$labels, -1)
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
+      
+    }
+    
+    mergedData <- left_join(DB_MAP, filteredYearFertiltiy(), by = c("region" = "Name"))
+    
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "Greens")
+    
+    world_map <- ggplot(mergedData) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(Total.Fertility.Rate, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      coord_fixed() +
+      scale_fill_manual(values = color_palette) +
+      labs(title = "World Map of Fertility Rate", fill = "Births per woman") +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
+  })
+  ###<--- FERTILITY MAP###
+  
+  ### INFANT MORTALITY MAP --->###
+  filteredYearInfant <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYearInfant)
+    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears["Infant.Mortality.Rate.Both.Sexes"])
+  })
+  
+  output$infant_map <- renderPlot({
+    
+    filteredInput <- filteredYearInfant()$Infant.Mortality.Rate.Both.Sexes[!is.na(filteredYearInfant()$Infant.Mortality.Rate.Both.Sexes)]
+    
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
+    
+    lowestNumber = 0
+    
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    breakNumber = 7
+    
+    if (maximumPop > 1000){
+      breakNumber = 12
+    }else if (maximumPop < 10){
+      breakNumber = 4
+    }else{
+      breakNumber = 6
+    }
+    
+    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(5), labels = comma_format())
+    
+    colorLabels = head(color_intervals2$labels, -1)
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
+    }
+    
+    mergedData <- left_join(DB_MAP, filteredYearInfant(), by = c("region" = "Name"))
+    
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
+    
+    print(color_intervals2)
+    print(mergedData)
+    
+    world_map <- ggplot(mergedData) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(Infant.Mortality.Rate.Both.Sexes, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      coord_fixed() +
+      scale_fill_manual(values = color_palette) +
+      labs(title = "World Map of Infant Mortality Rate, Both Sexes", fill = "Deaths per 1,000 live births") +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
+  })
+  ### <--- INFANT MORTALITY MAP###
   
 }
