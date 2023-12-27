@@ -1,65 +1,38 @@
 if(!requireNamespace("shiny",quietly=TRUE))install.packages("shiny")
 if(!requireNamespace("dplyr",quietly=TRUE))install.packages("dplyr")
 if(!requireNamespace("ggplot2",quietly=TRUE))install.packages("ggplot2")
-if(!requireNamespace("maps", quietly=TRUE))install.packages("maps")
+if(!requireNamespace("gganimate",quietly=TRUE))install.packages("gganimate")
+if(!requireNamespace("gifski",quietly=TRUE))install.packages("gifski")
 if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
-
+if(!requireNamespace("moments", quietly=TRUE))install.packages("moments")
+if(!requireNamespace("scales", quietly=TRUE))install.packages("scales")
 
 library(shiny)
 library(dplyr)
 library(tidyverse)
-library(maps)
 library(RColorBrewer)
 library(moments)
 library(scales)
+library(ggplot2)
+library(gganimate)
 
 source("./preprocess.R")
+source("./gender_imbalance_plot.R")
+source("./living_cost_migration_plot.R")
 IDB <- load_IDB()
 DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
 
 function(input, output) {
   
-  dataset <- reactive({
-    IDB |>
-      select(Year, Name, input$d1, input$d2) |>
-      filter(Year >= input$year[1] & Year <= input$year[2] & Name == input$name)
-  })
+  output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
-  scaleFactor <- reactive({
-    max(dataset()[[input$d1]], na.rm = TRUE) / max(dataset()[[input$d2]], na.rm = TRUE)
-  })
-  
-  output$tab1_plot <- renderPlot({
-    
-    d1 <- input$d1
-    d2 <- input$d2
-    
-    p <- ggplot(dataset()) + 
-      geom_line(aes(x=Year, y=.data[[d1]])) + 
-      geom_point(aes(x=Year, y=.data[[d1]])) +
-      # geom_text(aes(x = Year, y = .data[[input$d1]], label=.data[[input$d1]]),vjust=-0.25) +
-      geom_line(aes(x=Year, y=.data[[d2]] * scaleFactor()), color="red") +
-      geom_point(aes(x=Year, y=.data[[d2]] * scaleFactor()), color="red")+
-      # geom_text(aes(x = Year, y = .data[[input$d2]], label=.data[[input$d2]]),vjust=-0.25, color="red") +
-      scale_y_continuous(name=colname2name_map[d1], sec.axis=sec_axis(~./scaleFactor(), name=colname2name_map[d2])) +
-      theme(
-        axis.title.y.left=element_text(),
-        axis.text.y.left=element_text(),
-        axis.title.y.right=element_text(color="red"),
-        axis.text.y.right=element_text(color="red")
-      )
-      labs(x = "Year", y = input$d1)
-    print(p)
-  })
-  
-  output$table <- renderTable(dataset())
-  
+  output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
   
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)
-    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears[input$d4])
+    country_data  <- data.frame(country = filteredYears["Country"], occurrences = filteredYears[input$d4])
   })
   
   worldMapDataset <- reactive({
@@ -67,7 +40,6 @@ function(input, output) {
   })
   
   worldMapIntervals <- reactive({
-
     d4 <- input$d4
     
     d4 = gsub(r"{\s*\([^\)]+\)}","",as.character(d4))
@@ -109,6 +81,12 @@ function(input, output) {
       maximumPop = 600
     }
     
+    intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
+    
+  })
+  
+  worldMapDataset <- reactive({
+    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Country"))
     if (d4 == "Net.international.migrants.both.sexes"){
       breakNumber = 4
       maximumPop = 1000
@@ -187,13 +165,14 @@ function(input, output) {
   
   filteredYearFertiltiy <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYearFertility)
-    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears["Total.Fertility.Rate"])
+    country_data  <- data.frame(country = filteredYears[["Country"]], occurrences = filteredYears[["Total.Fertility.Rate"]])
   })
   
   ### FERTILITY MAP --->###
   output$fertility_map <- renderPlot({
     
-    filteredInput <- filteredYearFertiltiy()$Total.Fertility.Rate[!is.na(filteredYearFertiltiy()$Total.Fertility.Rate)]
+    filteredInput <- filteredYearFertiltiy()$occurrences[!is.na(filteredYearFertiltiy()$occurrences)]
+    print(filteredInput)
     
     minimumPop = min(filteredInput)
     maximumPop = max(filteredInput)
@@ -221,12 +200,12 @@ function(input, output) {
       
     }
     
-    mergedData <- left_join(DB_MAP, filteredYearFertiltiy(), by = c("region" = "Name"))
+    mergedData <- left_join(DB_MAP, filteredYearFertiltiy(), by = c("region" = "country"))
     
     color_palette <- brewer.pal(length(color_intervals2$breaks), "Greens")
     
     world_map <- ggplot(mergedData) +
-      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(Total.Fertility.Rate, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       coord_fixed() +
       scale_fill_manual(values = color_palette) +
       labs(title = "World Map of Fertility Rate", fill = "Births per woman") +
@@ -245,12 +224,12 @@ function(input, output) {
   ### INFANT MORTALITY MAP --->###
   filteredYearInfant <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYearInfant)
-    country_data  <- data.frame(country = filteredYears["Name"], occurrences = filteredYears["Infant.Mortality.Rate.Both.Sexes"])
+    country_data  <- data.frame(country = filteredYears[["Country"]], occurrences = filteredYears[["Infant.Mortality.Rate.Both.Sexes"]])
   })
   
   output$infant_map <- renderPlot({
     
-    filteredInput <- filteredYearInfant()$Infant.Mortality.Rate.Both.Sexes[!is.na(filteredYearInfant()$Infant.Mortality.Rate.Both.Sexes)]
+    filteredInput <- filteredYearInfant()$occurrences[!is.na(filteredYearInfant()$occurrences)]
     
     minimumPop = min(filteredInput)
     maximumPop = max(filteredInput)
@@ -276,12 +255,12 @@ function(input, output) {
       }
     }
     
-    mergedData <- left_join(DB_MAP, filteredYearInfant(), by = c("region" = "Name"))
+    mergedData <- left_join(DB_MAP, filteredYearInfant(), by = c("region" = "country"))
     
     color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
     
     world_map <- ggplot(mergedData) +
-      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(Infant.Mortality.Rate.Both.Sexes, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
       coord_fixed() +
       scale_fill_manual(values = color_palette) +
       labs(title = "World Map of Infant Mortality Rate, Both Sexes", fill = "Deaths per 1,000 live births") +
