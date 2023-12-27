@@ -52,6 +52,31 @@ fluidPage(
                       plotOutput(outputId = "map")
                     )
       )
+    ),
+    tabPanel(
+      "Grocery and Renting Index", fluid = T,
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("year", "Select Year", choices = unique(dff$Year), selected = min(dff$Year)),
+          selectInput("continent", "Select Continent", choices = unique(dff$Continent), multiple = TRUE, selected = "Asia")
+        ),
+        mainPanel(
+          plotlyOutput("tab5_plot")
+        )
+      )
+    ),
+    tabPanel(
+      "Grocery and Renting Index", fluid = T,
+      sidebarLayout(
+        sidebarPanel(
+          selectInput("continent", "Select Continent", choices = unique(dff$Continent), multiple = TRUE, selected = "Asia"),
+          selectInput("yaxis", "Select Y-axis", choices = names(dff), selected = names(dff)[1])
+        ),
+        mainPanel(
+          plotOutput("tab6_plot")
+        )
+      )
     )
+    
   )
 )
