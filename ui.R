@@ -4,6 +4,7 @@ library(readr)
 source("./preprocess.R")
 
 IDB <- load_IDB()
+LIVING_COST_DB <- load_living_cost()
 names_map <- attr(IDB, "name2colname_map")[-c(1:4)]
 
 fluidPage(titlePanel("DV 16"),
@@ -89,7 +90,7 @@ fluidPage(titlePanel("DV 16"),
                   #   animate = TRUE
                   # ),
                   selectInput(
-                    'country_migration_plot', "Country", c(unique(IDB$Country))
+                    'country_migration_plot', "Country", c(unique(LIVING_COST_DB$Country))
                   ),),
                 mainPanel(imageOutput(outputId = "living_cost_migration"),),
               )

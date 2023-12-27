@@ -1,15 +1,21 @@
-living_cost_migration_plot <- function(input, IDB, output) {
+living_cost_migration_plot <- function(input, IDB, LIVING_COST_DB) {
   # a plot of living cost index against migration rate
   # it should show 
   # 1. all countries by year
   # 2. all year by country
   # do a time series plot by country first
   dataset <- reactive({
-    IDB |> select(Year, Country, Income, "Net.Migration.Rate") |>
+    filteredMigration <- IDB |> select(Year, Country, Income, "Net.Migration.Rate") |>
       filter(Country == input$country_migration_plot)
+    
+    filteredLivingCost <- LIVING_COST_DB |> select(Year, Country, "Cost.of.Living.Plus.Rent.Index") |> 
+      filter(Country == input$country_migration_plot)
+    
+    data <- left_join(filteredLivingCost, filteredMigration, by = c("Country" = "Country", "Year" = "Year"))
   })
   
   return(renderImage({
+    
     outfile <- tempfile(fileext='.gif')
   
     p <- ggplot(dataset(), aes(x = Year, group=1, color=Income)) + 
