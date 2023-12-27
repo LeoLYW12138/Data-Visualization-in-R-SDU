@@ -32,24 +32,63 @@ fluidPage(
       )
     ),
     tabPanel(
-      "Tab 2", fluid = T,
-      #plotOutput(outputId = "map"),
+      "Map Chart", fluid = T,
       sidebarLayout(position = "right",
                     sidebarPanel(
-                      selectInput('d4', 'D4', names_map, names_map[[2]]),
+                      selectInput('d4', 'Choose a Variable:', names_map, names_map[[2]]),
                       sliderInput(
                         "mapYear",
-                        "MapYear:",
+                        "Map Year:",
                         min = 2010,
                         max = 2023,
                         value = 2010,
                         step = 1,
-                        sep = ",",
+                        sep = "",
                         animate = TRUE
                       ),
                     ),
                     mainPanel(
                       plotOutput(outputId = "map")
+                    )
+      )
+    ),
+    tabPanel(
+      "Fertility Rate", fluid = T,
+      sidebarLayout(position = "right",
+                    sidebarPanel(
+                      sliderInput(
+                        "mapYearFertility",
+                        "Map Year:",
+                        min = 2010,
+                        max = 2023,
+                        value = 2010,
+                        step = 1,
+                        sep = "",
+                        animate = TRUE
+                      ),
+                    ),
+                    mainPanel(
+                      plotOutput(outputId = "fertility_map")
+                    )
+      )
+    ),
+    tabPanel(
+      "Infant Mortality Rate", fluid = T,
+      sidebarLayout(position = "right",
+                    sidebarPanel(
+                      sliderInput(
+                        "mapYearInfant",
+                        "Map Year:",
+                        min = 2010,
+                        max = 2023,
+                        value = 2010,
+                        step = 1,
+                        sep = "",
+                        animate = TRUE
+                      ),
+                    ),
+                    mainPanel(
+                      plotOutput(outputId = "infant_map")
                     )
       )
     )
