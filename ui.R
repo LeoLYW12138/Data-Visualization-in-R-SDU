@@ -10,27 +10,6 @@ fluidPage(
   titlePanel("DV 16"),
   tabsetPanel(
     tabPanel(
-      "Tab 1", fluid = T,
-      sidebarLayout(position = "right",
-        sidebarPanel(
-          selectInput('d1', 'D1', names_map[-(1:4)]),
-          selectInput('d2', 'D2', names_map[-(1:4)], names_map[[6]]),
-          selectInput('name', "Country", c(unique(IDB$Country))),
-          sliderInput(
-            "year",
-            "Year",
-            min = 2010,
-            max = 2023,
-            value = c(2010, 2023)
-          ),
-        ),
-        mainPanel(
-          plotOutput('tab1_plot'),
-          tableOutput('table')
-        )
-      )
-    ),
-    tabPanel(
       "Tab 2", fluid = T,
       sidebarLayout(position = "right",
         sidebarPanel(
@@ -53,39 +32,37 @@ fluidPage(
     ),
     tabPanel(
       "Gender Imbalance", fluid = T,
-      sidebarLayout(position = "right",
-        sidebarPanel(
+          plotOutput(outputId = "gender_imbalance"),
+          div(style = "display:flex; flex-direction: column; align-items: center; justify-content: center;",
           sliderInput(
-            "year1",
-            label = "Year:",
+            "year_gender_imbalance",
+            label = div(style="text-align: center;", "Year:"),
+            width = "80%",
             min = MIN_YEAR,
             max = MAX_YEAR,
             value = MIN_YEAR,
             step = 1,
             animate = TRUE
           ),
-        ),
-        mainPanel(
-          plotOutput(outputId = "gender_imbalance")
-        )
-      )
+          checkboxInput("show_income_level_gender_imbalance", "Show Income level of the country", value=F),
+              ),
     ),
     tabPanel(
       "Living cost vs Migration rate", fluid = T,
       sidebarLayout(position = "left",
                     sidebarPanel(
-                      selectInput("mode",
-                                  label="Mode",
-                                  c("By Year", "By Country")),
-                      sliderInput(
-                        "year_migration_plot",
-                        label = "Year:",
-                        min = MIN_YEAR,
-                        max = MAX_YEAR,
-                        value = MIN_YEAR,
-                        step = 1,
-                        animate = TRUE
-                      ),
+                      # selectInput("mode",
+                      #             label="Mode",
+                      #             c("By Year", "By Country")),
+                      # sliderInput(
+                      #   "year_migration_plot",
+                      #   label = "Year:",
+                      #   min = MIN_YEAR,
+                      #   max = MAX_YEAR,
+                      #   value = MIN_YEAR,
+                      #   step = 1,
+                      #   animate = TRUE
+                      # ),
                       selectInput('country_migration_plot', "Country", c(unique(IDB$Country))),
                     ),
                     mainPanel(
