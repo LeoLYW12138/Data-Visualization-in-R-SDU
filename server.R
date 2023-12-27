@@ -25,41 +25,6 @@ colname2name_map <- attr(IDB, "colname2name_map")
 
 function(input, output) {
   
-  dataset <- reactive({
-    IDB |>
-      select(Year, Country, input$d1, input$d2) |>
-      filter(Year >= input$year[1] & Year <= input$year[2] & Country == input$name)
-  })
-  
-  scaleFactor <- reactive({
-    m <- max(dataset()[[input$d1]], na.rm = TRUE) / max(dataset()[[input$d2]], na.rm = TRUE)
-  })
-  
-  output$tab1_plot <- renderPlot({
-    
-    d1 <- input$d1
-    d2 <- input$d2
-    
-    p <- ggplot(dataset()) + 
-      geom_line(aes(x=Year, y=.data[[d1]])) + 
-      geom_point(aes(x=Year, y=.data[[d1]])) +
-      # geom_text(aes(x = Year, y = .data[[input$d1]], label=.data[[input$d1]]),vjust=-0.25) +
-      geom_line(aes(x=Year, y=.data[[d2]] * scaleFactor()), color="red") +
-      geom_point(aes(x=Year, y=.data[[d2]] * scaleFactor()), color="red")+
-      # geom_text(aes(x = Year, y = .data[[input$d2]], label=.data[[input$d2]]),vjust=-0.25, color="red") +
-      scale_y_continuous(name=colname2name_map[d1], sec.axis=sec_axis(~./scaleFactor(), name=colname2name_map[d2])) +
-      theme(
-        axis.title.y.left=element_text(),
-        axis.text.y.left=element_text(),
-        axis.title.y.right=element_text(color="red"),
-        axis.text.y.right=element_text(color="red")
-      )
-      labs(x = "Year", y = input$d1)
-    print(p)
-  })
-  
-  output$table <- renderTable(dataset())
-  
   output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
   output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
@@ -91,9 +56,6 @@ function(input, output) {
     
     minimumPop = min(filteredInput)
     maximumPop = max(filteredInput)
-    
-    print(minimumPop)
-    print(maximumPop)
     
     lowestNumber = 0
     
@@ -132,11 +94,10 @@ function(input, output) {
     
     intervals <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(breakNumber), labels = comma_format())
     
-    print(world_map)
   })
   
   
-  ### MAP ###
+  ### OVERALL MAP --->###
   output$map <- renderPlot({
     
     d4 <- input$d4
@@ -199,8 +160,120 @@ function(input, output) {
             panel.grid.minor = element_blank())
     
     print(world_map)
-    
   })
-  ### MAP >###
+  ###<--- OVERALL MAP###
+  
+  filteredYearFertiltiy <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYearFertility)
+    country_data  <- data.frame(country = filteredYears[["Country"]], occurrences = filteredYears[["Total.Fertility.Rate"]])
+  })
+  
+  ### FERTILITY MAP --->###
+  output$fertility_map <- renderPlot({
+    
+    filteredInput <- filteredYearFertiltiy()$occurrences[!is.na(filteredYearFertiltiy()$occurrences)]
+    print(filteredInput)
+    
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
+    
+    lowestNumber = 0
+    
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(4), labels = comma_format())
+    
+    colorLabels = head(color_intervals2$labels, -1)
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
+      
+    }
+    
+    mergedData <- left_join(DB_MAP, filteredYearFertiltiy(), by = c("region" = "country"))
+    
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "Greens")
+    
+    world_map <- ggplot(mergedData) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      coord_fixed() +
+      scale_fill_manual(values = color_palette) +
+      labs(title = "World Map of Fertility Rate", fill = "Births per woman") +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
+  })
+  ###<--- FERTILITY MAP###
+  
+  ### INFANT MORTALITY MAP --->###
+  filteredYearInfant <- reactive({
+    filteredYears <- filter(IDB, Year == input$mapYearInfant)
+    country_data  <- data.frame(country = filteredYears[["Country"]], occurrences = filteredYears[["Infant.Mortality.Rate.Both.Sexes"]])
+  })
+  
+  output$infant_map <- renderPlot({
+    
+    filteredInput <- filteredYearInfant()$occurrences[!is.na(filteredYearInfant()$occurrences)]
+    
+    minimumPop = min(filteredInput)
+    maximumPop = max(filteredInput)
+    
+    lowestNumber = 0
+    
+    if (minimumPop < lowestNumber){
+      lowestNumber = minimumPop
+    }else {
+      lowestNumber = 0
+    }
+    
+    color_intervals2 <- cbreaks(c(lowestNumber, maximumPop), breaks_pretty(5), labels = comma_format())
+    
+    colorLabels = head(color_intervals2$labels, -1)
+    colorLabels[1] = paste("Up to", colorLabels[2])
+    
+    for (i in 2:length(colorLabels)){
+      if(!is.na(colorLabels[i+1])){
+        colorLabels[i] = paste(colorLabels[i], "to", colorLabels[i+1])
+      }else{
+        colorLabels[i] = paste(colorLabels[i], "and", "more")
+      }
+    }
+    
+    mergedData <- left_join(DB_MAP, filteredYearInfant(), by = c("region" = "country"))
+    
+    color_palette <- brewer.pal(length(color_intervals2$breaks), "YlOrRd")
+    
+    world_map <- ggplot(mergedData) +
+      geom_polygon(aes(x = long, y = lat, group = group, fill = cut(occurrences, breaks = color_intervals2$breaks, labels = colorLabels)), color = "gray40") +
+      coord_fixed() +
+      scale_fill_manual(values = color_palette) +
+      labs(title = "World Map of Infant Mortality Rate, Both Sexes", fill = "Deaths per 1,000 live births") +
+      theme_minimal() +
+      theme(legend.position = "bottom") +
+      theme(legend.position = "bottom",
+            axis.title = element_blank(),
+            axis.text = element_blank(),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+    
+    print(world_map)
+  })
+  ### <--- INFANT MORTALITY MAP###
   
 }

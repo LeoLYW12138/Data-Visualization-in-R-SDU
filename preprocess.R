@@ -17,13 +17,15 @@ load_IDB <- function () {
     name2colname_map[names(headers)[i]] <- formatted_names[i]
     colname2name_map[formatted_names[i]] <- names(headers)[i]
   }
-  IDB <- read_csv("./IDB_combined.csv", col_names = FALSE, skip = 1, show_col_types = FALSE)
+  IDB <- read_csv("./IDB_combined.csv", col_names = FALSE, skip = 1, show_col_types = FALSE, na=c("", ".", "NA", "--"))
   names(IDB) <- formatted_names
 
   # remove useless rows e.g. --> 2010
   IDB <- IDB |> filter(!startsWith(Country, "->"))
   # convert all "XXX,XXX.XX" formatted values to number
-  # IDB[, -(1:7)] <- IDB[, -(1:7)] |> lapply(function(x) ifelse(is.character, parse_guess(x, na=c("", "--", "NA"), guess_integer = TRUE), x))
+  # IDB[, -(1:7)] <- IDB[, -(1:7)] |> lapply(function(x) parse_guess(x, na=c("", "--", "NA"), guess_integer = TRUE))
+  # IDB <- IDB |> mutate(across(7:ncol(IDB), ~ lapply(function(x) parse_guess(x, na=c("", "--", "NA"), guess_integer = TRUE))))
+  # IDB <- IDB |> mutate(across(where(is.character), ~ na_if(.x, "--")))
   IDB <- IDB |> mutate_at(c("Year"), as.integer)
   # TODO group by year and country
   
