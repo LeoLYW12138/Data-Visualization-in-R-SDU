@@ -16,6 +16,11 @@ library(scales)
 library(ggplot2)
 library(gganimate)
 
+
+source("./cost_of_living.R")
+source("./shifts_income.R")
+dff <- read.csv("./combined_new.csv", header = TRUE,sep = ',')
+
 source("./preprocess.R")
 source("./gender_imbalance_plot.R")
 source("./living_cost_migration_plot.R")
@@ -29,16 +34,15 @@ function(input, output) {
   
   output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
   
+  output$tab5_plot <- cost_of_living(input, dff, output)
+  output$tab6_plot <- shifts_income(input, dff, output)
+  
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)
     country_data  <- data.frame(country = filteredYears["Country"], occurrences = filteredYears[input$d4])
   })
-  
-  worldMapDataset <- reactive({
-    DB_MAP <- left_join(DB_MAP, worldMapIDB(), by = c("region" = "Name"))
-  })
-  
+
   worldMapIntervals <- reactive({
     d4 <- input$d4
     
