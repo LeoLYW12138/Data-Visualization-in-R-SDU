@@ -30,6 +30,8 @@ function(input, output) {
   
   output$living_cost_migration <- living_cost_migration_plot(input, IDB, LIVING_COST_DB)
   
+  output$gender_trend <- gender_imbalance_trend_plot(input, IDB)
+  
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)

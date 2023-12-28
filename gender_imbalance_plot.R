@@ -23,17 +23,15 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
     
     # color_intervals <- cbreaks(c(minValue, maxValue), extended_breaks(9), comma_format())
     color_intervals = list(
-      breaks = c(80, 90, 100, 110, 120, 130, 140, 150, 160, 170),
+      breaks = c(90, 95, 100, 105, 110, 115, 120, 300),
       labels = c(
-        "<80",
-        "<90",
-        "<100",
-        "<110",
-        "<120",
-        "<130",
-        "<140",
-        "<150",
-        "150+"
+        "0-90",
+        "90-95",
+        "95-100",
+        "100-105",
+        "105-110",
+        "110-115",
+        "115+"
       )
     )
     display.brewer.all(colorblindFriendly = TRUE)
@@ -64,6 +62,26 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
       p <- p + geom_polygon(aes(color = Income), fill = NA, size = 0.2) +
         scale_color_brewer(palette = "Set1", na.value = "grey40")
     }
+    
+    print(p)
+  }))
+}
+
+
+gender_imbalance_trend_plot <- function(input, IDB) {
+  dataset <- reactive({
+    IDB_by_Country <- IDB |> filter(Country == input$country_gender_imbalance) |> 
+      select( Year, Country, Male.Population, Female.Population) |>
+      mutate(gender_ratio = Male.Population / Female.Population * 100)
+  })
+  
+  return(renderPlot({
+  
+    p <-
+      ggplot(dataset(), aes(x = Year, y = gender_ratio)) +
+      geom_line() +
+      labs(title = paste("Trend of gender ratio in", input$country_gender_imbalance), x = "Year", y = "Male to Female %") +
+      theme_minimal()
     
     print(p)
   }))

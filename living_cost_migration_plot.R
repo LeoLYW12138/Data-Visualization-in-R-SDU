@@ -70,7 +70,7 @@ living_cost_migration_plot <- function(input, IDB, LIVING_COST_DB) {
         caption = "Year: {closest_state}"
       )
     
-    anim_save("outfile.gif", animate(p, fps = 5, renderer = gifski_renderer(loop = FALSE)))
+    anim_save("outfile.gif", animate(p, renderer = gifski_renderer(loop = FALSE)))
     list(src = "outfile.gif",
          contentType = "image/gif")
     
