@@ -20,6 +20,7 @@ source("./preprocess.R")
 source("./gender_imbalance_plot.R")
 source("./living_cost_migration_plot.R")
 IDB <- load_IDB()
+LIVING_COST_DB <- load_living_cost()
 DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
 
@@ -27,7 +28,9 @@ function(input, output) {
   
   output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
-  output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
+  output$living_cost_migration <- living_cost_migration_plot(input, IDB, LIVING_COST_DB)
+  
+  output$gender_trend <- gender_imbalance_trend_plot(input, IDB)
   
   output$downloadData <- downloadHandler(
     filename = "report-Group16.pdf",
@@ -179,7 +182,6 @@ function(input, output) {
   output$fertility_map <- renderPlot({
     
     filteredInput <- filteredYearFertiltiy()$occurrences[!is.na(filteredYearFertiltiy()$occurrences)]
-    print(filteredInput)
     
     minimumPop = min(filteredInput)
     maximumPop = max(filteredInput)

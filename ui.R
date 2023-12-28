@@ -4,6 +4,7 @@ library(readr)
 source("./preprocess.R")
 
 IDB <- load_IDB()
+LIVING_COST_DB <- load_living_cost()
 names_map <- attr(IDB, "name2colname_map")[-c(1:4)]
 
 fluidPage(titlePanel("DV 16"),
@@ -49,27 +50,40 @@ fluidPage(titlePanel("DV 16"),
               )
             ),
             tabPanel(
-              "Gender Imbalance",
+              "Gender Ratio",
               fluid = T,
               plotOutput(outputId = "gender_imbalance"),
               div(
                 style = "display:flex; flex-direction: column; align-items: center; justify-content: center;",
-                sliderInput(
-                  "year_gender_imbalance",
-                  label = div(style = "text-align: center;", "Year:"),
-                  width = "80%",
-                  min = MIN_YEAR,
-                  max = MAX_YEAR,
-                  value = MIN_YEAR,
-                  step = 1,
-                  animate = TRUE
+                div(
+                  style = "margin-right: auto; padding-left:10%;",
+                  checkboxInput(
+                    "show_income_level_gender_imbalance",
+                    "Show Income level of the country",
+                    value = F
+                  ),
                 ),
-                checkboxInput(
-                  "show_income_level_gender_imbalance",
-                  "Show Income level of the country",
-                  value = F
-                ),
+                  sliderInput(
+                    "year_gender_imbalance",
+                    label = div(style = "text-align: center;", "Year:"),
+                    width = "80%",
+                    min = MIN_YEAR,
+                    max = MAX_YEAR,
+                    value = MIN_YEAR,
+                    step = 1,
+                    animate = TRUE
+                  ),
               ),
+              sidebarLayout(
+                position = "left",
+                sidebarPanel(selectInput(
+                  "country_gender_imbalance",
+                  "Country",
+                  c(unique(IDB$Country))
+                )),
+                mainPanel(plotOutput(outputId = "gender_trend"))
+              ),
+              div(style= "height: 200px;")
             ),
             tabPanel(
               "Living cost vs Migration rate",
@@ -79,19 +93,11 @@ fluidPage(titlePanel("DV 16"),
                 sidebarPanel(# selectInput("mode",
                   #             label="Mode",
                   #             c("By Year", "By Country")),
-                  # sliderInput(
-                  #   "year_migration_plot",
-                  #   label = "Year:",
-                  #   min = MIN_YEAR,
-                  #   max = MAX_YEAR,
-                  #   value = MIN_YEAR,
-                  #   step = 1,
-                  #   animate = TRUE
-                  # ),
                   selectInput(
-                    'country_migration_plot', "Country", c(unique(IDB$Country))
-                  ),),
-                mainPanel(imageOutput(outputId = "living_cost_migration"),),
+                    'country_migration_plot', "Country", c(unique(LIVING_COST_DB$Country))
+                  ), ),
+                mainPanel(imageOutput(outputId = "living_cost_migration"), ),
+                # mainPanel(plotOutput(outputId = "living_cost_migration"),)
               )
             ),
             tabPanel(
@@ -121,4 +127,5 @@ fluidPage(titlePanel("DV 16"),
             #                   ),
             #                 ), )
             # ),
-          ),)
+          ),
+)
