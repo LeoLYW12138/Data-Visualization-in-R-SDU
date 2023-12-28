@@ -158,14 +158,13 @@ fluidPage(titlePanel("DV 16"),
               "Birth Rate Trend from 2010 to 2022",
               fluid = T,
               sidebarLayout(
-                
                 sidebarPanel(
-                  selectInput(inputId="region", label="Select Continent",
+                  selectInput(inputId="region_birth_rate", label="Select Continent",
                               choices=c("Africa", "Asia", "Europe", "North America", 
                                         "Oceania", "South America"),
                               selected = "Europe"),
                   
-                  selectInput(inputId="group", label="Select Income Range",
+                  selectInput(inputId="group_birth_rate", label="Select Income Range",
                               choices = c(
                                 "Low" = "L",
                                 "Lower Middle" = "LM",

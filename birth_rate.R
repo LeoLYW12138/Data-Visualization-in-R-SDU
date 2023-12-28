@@ -11,7 +11,7 @@ birth_rate <- function(input, df, output){
       df3 <- merge(df, df2, by="Country")
       
       df3 <- df3 %>% 
-        filter(Continent == input$region, Income_t == input$group)
+        filter(Continent == input$region_birth_rate, Income_t == input$group_birth_rate)
       
       ggplot(df3, aes(x=Year, y=Crude.Birth.Rate)) + 
         geom_line(aes(color=Country)) + 
