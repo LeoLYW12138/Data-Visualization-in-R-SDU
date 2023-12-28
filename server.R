@@ -29,6 +29,13 @@ function(input, output) {
   
   output$living_cost_migration <- living_cost_migration_plot(input, IDB, output)
   
+  output$downloadData <- downloadHandler(
+    filename = "report-Group16.pdf",
+    content = function(file) {
+      file.copy("www/Report-1.pdf", file)
+    }
+  )
+  
   ###< MAP ###
   worldMapIDB <- reactive({
     filteredYears <- filter(IDB, Year == input$mapYear)

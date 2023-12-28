@@ -94,6 +94,15 @@ fluidPage(titlePanel("DV 16"),
                 mainPanel(imageOutput(outputId = "living_cost_migration"),),
               )
             ),
+            tabPanel(
+              "Download PDF",
+              fluid = T,
+              sidebarLayout(
+                position = "left",
+                tags$a("View the report in the browser", href="Report-1.pdf"),
+                mainPanel(downloadButton("downloadData", "Download Report"),),
+              )
+            ),
             # tabPanel(
             #   "Map Chart",
             #   fluid = T,
