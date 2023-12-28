@@ -6,6 +6,7 @@ if(!requireNamespace("gifski",quietly=TRUE))install.packages("gifski")
 if(!requireNamespace("RColorBrewer", quietly=TRUE))install.packages("RColorBrewer")
 if(!requireNamespace("moments", quietly=TRUE))install.packages("moments")
 if(!requireNamespace("scales", quietly=TRUE))install.packages("scales")
+if(!requireNamespace("plotly", quietly=TRUE))install.packages("plotly")
 
 library(shiny)
 library(dplyr)
@@ -16,11 +17,16 @@ library(scales)
 library(ggplot2)
 library(gganimate)
 
+
 source("./preprocess.R")
 source("./gender_imbalance_plot.R")
 source("./living_cost_migration_plot.R")
+source("./cost_of_living.R")
+source("./shifts_income.R")
+source("./population_density.R")
+source("./birth_rate.R")
 IDB <- load_IDB()
-LIVING_COST_DB <- load_living_cost()
+COMBINED_DB <- load_combined()
 DB_MAP <- load_WorldMap()
 colname2name_map <- attr(IDB, "colname2name_map")
 
@@ -28,9 +34,13 @@ function(input, output) {
   
   output$gender_imbalance <- gender_imbalance_plot(input, DB_MAP, IDB)
   
-  output$living_cost_migration <- living_cost_migration_plot(input, IDB, LIVING_COST_DB)
+  output$living_cost_migration <- living_cost_migration_plot(input, IDB, COMBINED_DB)
   
   output$gender_trend <- gender_imbalance_trend_plot(input, IDB)
+  output$tab5_plot <- cost_of_living(input, COMBINED_DB, output)
+  output$tab6_plot <- shifts_income(input, COMBINED_DB, output)
+  output$tab7_plot <- population_density(input, COMBINED_DB, output)
+  output$tab8_plot <- birth_rate(input, COMBINED_DB, output)
   
   output$downloadData <- downloadHandler(
     filename = "report-Group16.pdf",

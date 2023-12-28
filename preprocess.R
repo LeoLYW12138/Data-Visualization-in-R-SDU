@@ -35,7 +35,7 @@ load_IDB <- function () {
   # return( c(IDB, names_map) )
 }
 
-load_living_cost <- function () {
+load_combined <- function () {
   headers <- read_csv("./combined_new.csv", n_max=0, show_col_types = FALSE)
   
   formatted_names <- str_replace_all(names(headers), c(" " = "." , "," = "" ))

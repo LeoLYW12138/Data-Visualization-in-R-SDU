@@ -71,7 +71,7 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
 gender_imbalance_trend_plot <- function(input, IDB) {
   dataset <- reactive({
     IDB_by_Country <- IDB |> filter(Country == input$country_gender_imbalance) |> 
-      select( Year, Country, Male.Population, Female.Population) |>
+      select( Year, Country, Male.Population, Female.Population, Income) |>
       mutate(gender_ratio = Male.Population / Female.Population * 100)
   })
   
@@ -80,7 +80,7 @@ gender_imbalance_trend_plot <- function(input, IDB) {
     p <-
       ggplot(dataset(), aes(x = Year, y = gender_ratio)) +
       geom_line() +
-      labs(title = paste("Trend of gender ratio in", input$country_gender_imbalance), x = "Year", y = "Male to Female %") +
+      labs(title = paste("Trend of gender ratio in", input$country_gender_imbalance, "(", unique(dataset()$Income) ,")"), x = "Year", y = "Male to Female %") +
       theme_minimal()
     
     print(p)

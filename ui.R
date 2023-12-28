@@ -1,10 +1,11 @@
 library(shiny)
 library(ggplot2)
 library(readr)
+library(plotly)
 source("./preprocess.R")
 
 IDB <- load_IDB()
-LIVING_COST_DB <- load_living_cost()
+COMBINED_DB <- load_combined()
 names_map <- attr(IDB, "name2colname_map")[-c(1:4)]
 
 fluidPage(titlePanel("DV 16"),
@@ -80,7 +81,15 @@ fluidPage(titlePanel("DV 16"),
                   "country_gender_imbalance",
                   "Country",
                   c(unique(IDB$Country))
-                )),
+                ),
+                # selectInput(inputId="income_gender_imbalance", label="Income Level",
+                #             choices = c(
+                #               "Low income",
+                #               "Lower middle income",
+                #               "Upper middle income",
+                #               "High income"),
+                #             selected = "Low Income")
+                ),
                 mainPanel(plotOutput(outputId = "gender_trend"))
               ),
               div(style= "height: 200px;")
@@ -94,10 +103,80 @@ fluidPage(titlePanel("DV 16"),
                   #             label="Mode",
                   #             c("By Year", "By Country")),
                   selectInput(
-                    'country_migration_plot', "Country", c(unique(LIVING_COST_DB$Country))
-                  ), ),
+                    'country_migration_plot', "Country", c(unique(COMBINED_DB$Country))
+                  ),
+                p("Notice: It takes some time for gganimate to render the animated graph")
+                ),
                 mainPanel(imageOutput(outputId = "living_cost_migration"), ),
                 # mainPanel(plotOutput(outputId = "living_cost_migration"),)
+              )
+            ),
+            tabPanel(
+              "Do countries in the same income range and continent share similar groceries and renting index?", fluid = T,
+              sidebarLayout(
+                sidebarPanel(
+                  selectInput("year", "Select Year", choices = unique(COMBINED_DB$Year), selected = min(COMBINED_DB$Year)),
+                  selectInput("continent", "Select Continent", choices = unique(COMBINED_DB$Continent), multiple = TRUE, selected = "Asia")
+                ),
+                mainPanel(
+                  plotlyOutput("tab5_plot")
+                )
+              )
+            ),
+            tabPanel(
+              "Are there any changes in each variable when a country shifts from one income group to another?", fluid = T,
+              sidebarLayout(
+                sidebarPanel(
+                  selectInput("continent", "Select Continent", choices = unique(COMBINED_DB$Continent), multiple = TRUE, selected = "Asia"),
+                  selectInput("yaxis", "Select Y-axis", choices = names(COMBINED_DB), selected = names(COMBINED_DB)[1])
+                ),
+                mainPanel(
+                  plotOutput("tab6_plot")
+                )
+              )
+            ),
+            tabPanel("Relationship Between Population Density and Life Expectancy",
+              fluid = T,
+              sidebarLayout(
+                
+                sidebarPanel(
+                  sliderInput(inputId="year", label="Select Year",
+                              min=2010, max=2022, value=2010
+                  ),
+                  selectInput(inputId="region", label="Select Continent",
+                              choices=c("All", "Africa", "Asia", "Europe", 
+                                        "North America", "Oceania", "South America"),
+                              selected = "All")
+                ),
+                
+                mainPanel(
+                  plotOutput(outputId="tab7_plot")
+                )
+              )
+            ),
+            tabPanel(
+              "Birth Rate Trend from 2010 to 2022",
+              fluid = T,
+              sidebarLayout(
+                
+                sidebarPanel(
+                  selectInput(inputId="region", label="Select Continent",
+                              choices=c("Africa", "Asia", "Europe", "North America", 
+                                        "Oceania", "South America"),
+                              selected = "Europe"),
+                  
+                  selectInput(inputId="group", label="Select Income Range",
+                              choices = c(
+                                "Low" = "L",
+                                "Lower Middle" = "LM",
+                                "Upper Middle" = "UM",
+                                "High" = "H"),
+                              selected = "UM")
+                ),
+                
+                mainPanel(
+                  plotOutput(outputId="tab8_plot")
+                )
               )
             ),
             tabPanel(
