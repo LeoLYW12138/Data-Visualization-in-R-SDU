@@ -54,7 +54,7 @@ fluidPage(
       )
     ),
     tabPanel(
-      "Grocery and Renting Index", fluid = T,
+      "Do countries in the same income range and continent share similar groceries and renting index?", fluid = T,
       sidebarLayout(
         sidebarPanel(
           selectInput("year", "Select Year", choices = unique(dff$Year), selected = min(dff$Year)),
@@ -66,7 +66,7 @@ fluidPage(
       )
     ),
     tabPanel(
-      "Grocery and Renting Index", fluid = T,
+      "Are there any changes in each variable when a country shifts from one income group to another?", fluid = T,
       sidebarLayout(
         sidebarPanel(
           selectInput("continent", "Select Continent", choices = unique(dff$Continent), multiple = TRUE, selected = "Asia"),
