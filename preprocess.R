@@ -41,6 +41,7 @@ load_living_cost <- function () {
   formatted_names <- str_replace_all(names(headers), c(" " = "." , "," = "" ))
   DB <- read_csv("./combined_new.csv", col_names = FALSE, skip = 1, show_col_types = FALSE, na=c("", ".", "NA", "--"))
   names(DB) <- formatted_names
+  DB <- DB |> mutate_at(c("Year"), as.integer)
   
   return(DB)
 }

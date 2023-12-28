@@ -45,9 +45,9 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
           breaks = color_intervals$breaks,
           labels = color_intervals$labels
         )
-      ), size = 0.15, color = "gray40") +
-      scale_fill_brewer(palette = "BuPu", na.value = "grey40") +
-      labs(title = "Gender ratio in the world", fill = "Male to Female %") +
+      ), color = "gray40") +
+      scale_fill_brewer(palette = "Blues", na.value = "grey40") +
+      labs(title = "Gender ratio in the world", fill = "Male to Female %", caption="dark color means more male than female") +
       theme_minimal() +
       coord_fixed() +
       
@@ -61,7 +61,7 @@ gender_imbalance_plot <- function(input, DB_MAP, IDB) {
       )
     
     if (input$show_income_level_gender_imbalance) {
-      p <- p + geom_polygon(aes(color = Income), fill = NA, size = 0.15) +
+      p <- p + geom_polygon(aes(color = Income), fill = NA, size = 0.2) +
         scale_color_brewer(palette = "Set1", na.value = "grey40")
     }
     

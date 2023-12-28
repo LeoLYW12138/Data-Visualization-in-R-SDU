@@ -50,7 +50,7 @@ fluidPage(titlePanel("DV 16"),
               )
             ),
             tabPanel(
-              "Gender Imbalance",
+              "Gender Ratio",
               fluid = T,
               plotOutput(outputId = "gender_imbalance"),
               div(
@@ -77,22 +77,15 @@ fluidPage(titlePanel("DV 16"),
               fluid = T,
               sidebarLayout(
                 position = "left",
-                sidebarPanel(# selectInput("mode",
+                sidebarPanel(
+                  # selectInput("mode",
                   #             label="Mode",
                   #             c("By Year", "By Country")),
-                  # sliderInput(
-                  #   "year_migration_plot",
-                  #   label = "Year:",
-                  #   min = MIN_YEAR,
-                  #   max = MAX_YEAR,
-                  #   value = MIN_YEAR,
-                  #   step = 1,
-                  #   animate = TRUE
-                  # ),
                   selectInput(
                     'country_migration_plot', "Country", c(unique(LIVING_COST_DB$Country))
                   ),),
                 mainPanel(imageOutput(outputId = "living_cost_migration"),),
+                # mainPanel(plotOutput(outputId = "living_cost_migration"),)
               )
             ),
             # tabPanel(
