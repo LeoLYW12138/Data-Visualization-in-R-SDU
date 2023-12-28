@@ -9,10 +9,10 @@ library(viridis)
 library(plotly)
 
 # Assuming you have a data frame named dff with columns Year, Rent.Index, Groceries.Index, Income, Population, and Country
-dff <- read.csv("/Users/sirintra/Documents/exchange sem/study/DV/project/combined_new.csv", header = TRUE,sep = ',')
+dff <- read.csv("./combined_new.csv", header = TRUE,sep = ',')
 # Define the UI
 ui <- fluidPage(
-  titlePanel("Grocery and Renting Index"),
+  titlePanel("Do countries in the same income range and continent share similar groceries and renting index?"),
   sidebarLayout(
     sidebarPanel(
       selectInput("year", "Select Year", choices = unique(dff$Year), selected = min(dff$Year)),
